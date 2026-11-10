@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>antirea-express-starter - demo</title>
+<style>
+  body { font-family: system-ui, sans-serif; margin: 2rem auto; max-width: 640px; padding: 0 1rem; }
+  #bar-wrap { background: #eee; height: 20px; border-radius: 4px; overflow: hidden; margin: 1rem 0; }
+  #bar { background: #2a7; height: 100%; width: 0%; transition: width .2s; }
+  #bar.full { background: #c33; }
+  pre { background: #111; color: #f66; padding: 1rem; border-radius: 4px; white-space: pre-wrap; display: none; }
+  button, select { font-size: 1rem; padding: .4rem .8rem; }
+</style>
+</head>
+<body>
+  <h1>antirea-express-starter</h1>
+  <p>One account can only ever take 20% of this dataset. Try.</p>
+
+  <label>Demo user
+    <select id="user">
+      <option value="demo-1">demo-1</option>
+      <option value="demo-2">demo-2</option>
+    </select>
+  </label>
+  <button id="scrape">Scrape this dataset</button>
+
+  <div id="bar-wrap"><div id="bar"></div></div>
+  <p id="status">No requests yet.</p>
+  <pre id="blocked"></pre>
+
+  <footer>
+    <p>Powered by @dannyphan190/anti-rea - advisory signals, the host decides.</p>
+  </footer>
+
+<script>
+  const bar = document.getElementById("bar");
+  const status = document.getElementById("status");
+  const blocked = document.getElementById("blocked");
+  const seen = new Set();
+
+  document.getElementById("user").addEventListener("change", () => {
+    seen.clear();
+    bar.style.width = "0%";
+    bar.classList.remove("full");
+    blocked.style.display = "none";
+    status.textContent = "Switched user. No requests yet.";
+  });
+
+  document.getElementById("scrape").addEventListener("click", async () => {
+    const user = document.getElementById("user").value;
+    blocked.style.display = "none";
+    for (let page = 1; page <= 20; page++) {
+      const res = await fetch(`/api/products?limit=50&page=${page}`, {
+        headers: { "x-demo-user": user },
+      });
+      const body = await res.json();
+      if (res.status === 429) {
+        bar.classList.add("full");
+        blocked.textContent = JSON.stringify(body, null, 2);
+        blocked.style.display = "block";
+        status.textContent = `Stopped at page ${page}: ${seen.size} distinct records taken.`;
+        return;
+      }
+      if (!res.ok) { status.textContent = `HTTP ${res.status}`; return; }
+      for (const r of body.records) seen.add(r.id);
+      bar.style.width = `${(body.usage.used / body.usage.limit) * 100}%`;
+      status.textContent = `Page ${page}: ${seen.size} distinct records, usage ${body.usage.used}/${body.usage.limit}.`;
+      if (body.records.length === 0) break;
+    }
+    status.textContent = `Done: ${seen.size} distinct records taken.`;
+  });
+</script>
+</body>
+</html>

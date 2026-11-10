@@ -1,0 +1,4 @@
+page 1: +50 records (total distinct 50, usage 50/100)
+page 2: +50 records (total distinct 100, usage 100/100)
+page 3: 429 record_budget_exceeded - used 100/100, remaining 0
+done: identity demo-1 received 100 distinct records

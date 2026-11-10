@@ -1,0 +1,21 @@
+{
+  "name": "antirea-express-starter",
+  "version": "0.1.0",
+  "description": "Express starter with antiRea wired in: one identity can only ever receive 20% of the demo dataset.",
+  "license": "MIT",
+  "private": false,
+  "type": "commonjs",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js",
+    "scrape": "node scripts/scrape.js",
+    "scrape:herd": "node scripts/scrape-herd.js"
+  },
+  "dependencies": {
+    "@dannyphan190/anti-rea": "2.8.1",
+    "express": "^4.21.2"
+  }
+}

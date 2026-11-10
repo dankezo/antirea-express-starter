@@ -1,0 +1,12 @@
+herd-1 page 1: +50 records (own total 50, usage 50/100)
+herd-1 page 2: +50 records (own total 100, usage 100/100)
+herd-2 page 3: +50 records (own total 50, usage 50/100)
+herd-2 page 4: +50 records (own total 100, usage 100/100)
+herd-3 page 5: +50 records (own total 50, usage 50/100)
+herd-3 page 6: +50 records (own total 100, usage 100/100)
+herd-4 page 7: +50 records (own total 50, usage 50/100)
+herd-4 page 8: +50 records (own total 100, usage 100/100)
+herd-5 page 9: +50 records (own total 50, usage 50/100)
+herd-5 page 10: +50 records (own total 100, usage 100/100)
+done: 5 identities together received 500 distinct records, each within its own budget
+now check the server log for the [herd] flag line

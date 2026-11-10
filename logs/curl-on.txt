@@ -1,0 +1,17 @@
+=== curl: normal reader-2, list page limit=10 (ON) ===
+records: 10 usage: {'used': 10, 'limit': 100, 'remaining': 90, 'windowResetAt': 1794342123595, 'allowed': True}
+=== curl: reader-2 re-reads prod-0001 detail (already seen in list) ===
+record: prod-0001 usage: {'used': 10, 'limit': 100, 'remaining': 90, 'windowResetAt': 1794342123595, 'allowed': True}
+=== curl: reader-2 reads NEW detail prod-0200 (costs 1) ===
+record: prod-0200 usage: {'used': 11, 'limit': 100, 'remaining': 89, 'windowResetAt': 1794342123595, 'allowed': True}
+=== curl: capped demo-1 tries to re-read an ALREADY SEEN detail prod-0001 ===
+{"error":"record_budget_exceeded","usage":{"used":100,"limit":100,"remaining":0,"windowResetAt":1794342112151,"allowed":false}}
+HTTP 429
+=== curl: fresh exporter-2 tries FULL export (500 rows) ===
+{"error":"record_budget_exceeded","usage":{"used":0,"limit":100,"remaining":100,"windowResetAt":1794342123716,"allowed":false}}
+HTTP 429
+
+=== curl: fresh exporter-1 filtered export category=gear (100 rows) ===
+records: 100 usage: {'used': 200, 'limit': 100, 'remaining': 0, 'windowResetAt': 1794342123726, 'allowed': False}
+=== curl: second identity demo-2 first page works again ===
+records: 50 usage: {'used': 50, 'limit': 100, 'remaining': 50, 'windowResetAt': 1794342123759, 'allowed': True}

@@ -1,0 +1,8 @@
+=== NEGATIVE CONTROL: one polite reader, 2 pages + 3 details + usage ===
+page1 HTTP 200
+page2 HTTP 200
+detail HTTP 429
+{"identity":"account:polite-1","usage":{"used":100,"limit":100,"remaining":0,"windowResetAt":1794342143163,"allowed":true}}
+=== demo page GET / ===
+GET / HTTP 200
+<title>antirea-express-starter - demo</title>

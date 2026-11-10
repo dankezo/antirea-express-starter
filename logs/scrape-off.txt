@@ -1,0 +1,12 @@
+page 1: +50 records (total distinct 50, usage 0/100)
+page 2: +50 records (total distinct 100, usage 0/100)
+page 3: +50 records (total distinct 150, usage 0/100)
+page 4: +50 records (total distinct 200, usage 0/100)
+page 5: +50 records (total distinct 250, usage 0/100)
+page 6: +50 records (total distinct 300, usage 0/100)
+page 7: +50 records (total distinct 350, usage 0/100)
+page 8: +50 records (total distinct 400, usage 0/100)
+page 9: +50 records (total distinct 450, usage 0/100)
+page 10: +50 records (total distinct 500, usage 0/100)
+page 11: +0 records (total distinct 500, usage 0/100)
+done: identity demo-1 received 500 distinct records
