@@ -6,6 +6,8 @@ Clone it, run it, watch a scrape hit the wall.
 
 Build it. Ship it. Keep it yours.
 
+Run it in your browser first: [Open the live demo on StackBlitz](https://stackblitz.com/github/dankezo/antirea-express-starter) - no clone, no install. Press the scrape button and watch the budget stop it at 100 records.
+
 ## What this is
 
 - A demo API over 500 fake product records (generated in code,
