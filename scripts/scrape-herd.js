@@ -7,11 +7,23 @@
 // the coordination and blocks nothing.
 const BASE = process.env.BASE || "http://localhost:3000";
 
+// Each herd member is its own server-issued session: five separate
+// cookie jars, five identities the server minted. No member names
+// itself - exactly like five browsers that each visited once.
+async function getSessionCookie() {
+  const res = await fetch(`${BASE}/api/usage`);
+  const setCookie = res.headers.getSetCookie ? res.headers.getSetCookie() : [];
+  const pair = setCookie.map((c) => c.split(";")[0]).find((c) => c.startsWith("antirea_session="));
+  if (!pair) throw new Error("server did not issue a session cookie");
+  return pair;
+}
+
 async function drainSlice(user, firstPage) {
+  const cookie = await getSessionCookie();
   const seen = new Set();
   for (let page = firstPage; page < firstPage + 2; page++) {
     const res = await fetch(`${BASE}/api/products?limit=50&page=${page}`, {
-      headers: { "x-demo-user": user },
+      headers: { Cookie: cookie },
     });
     const body = await res.json();
     if (!res.ok) {

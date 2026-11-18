@@ -1,6 +1,6 @@
 {
   "name": "antirea-express-starter",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Express starter with antiRea wired in: one identity can only ever receive 20% of the demo dataset.",
   "license": "MIT",
   "private": false,
@@ -15,7 +15,7 @@
     "scrape:herd": "node scripts/scrape-herd.js"
   },
   "dependencies": {
-    "@dannyphan190/anti-rea": "2.8.1",
+    "@dannyphan190/anti-rea": "3.1.0",
     "express": "^4.21.2"
   }
 }

@@ -17,13 +17,10 @@
   <h1>antirea-express-starter</h1>
   <p>One account can only ever take 20% of this dataset. Try.</p>
 
-  <label>Demo user
-    <select id="user">
-      <option value="demo-1">demo-1</option>
-      <option value="demo-2">demo-2</option>
-    </select>
-  </label>
+  <p>Your identity is the server-issued session cookie in your
+  browser - you cannot pick it, and no header changes it.</p>
   <button id="scrape">Scrape this dataset</button>
+  <button id="newsession">Start a new session</button>
 
   <div id="bar-wrap"><div id="bar"></div></div>
   <p id="status">No requests yet.</p>
@@ -39,21 +36,28 @@
   const blocked = document.getElementById("blocked");
   const seen = new Set();
 
-  document.getElementById("user").addEventListener("change", () => {
+  function resetUi(text) {
     seen.clear();
     bar.style.width = "0%";
     bar.classList.remove("full");
     blocked.style.display = "none";
-    status.textContent = "Switched user. No requests yet.";
+    status.textContent = text;
+  }
+
+  document.getElementById("newsession").addEventListener("click", async () => {
+    const res = await fetch("/api/session/reset", { method: "POST" });
+    const body = await res.json();
+    resetUi(`New session ${body.identity}. No requests yet.`);
   });
 
+  fetch("/api/usage").then((r) => r.json()).then((body) => {
+    status.textContent = `Session ${body.identity}, usage ${body.usage.used}/${body.usage.limit}.`;
+  }).catch(() => {});
+
   document.getElementById("scrape").addEventListener("click", async () => {
-    const user = document.getElementById("user").value;
     blocked.style.display = "none";
     for (let page = 1; page <= 20; page++) {
-      const res = await fetch(`/api/products?limit=50&page=${page}`, {
-        headers: { "x-demo-user": user },
-      });
+      const res = await fetch(`/api/products?limit=50&page=${page}`);
       const body = await res.json();
       if (res.status === 429) {
         bar.classList.add("full");

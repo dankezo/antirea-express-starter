@@ -14,25 +14,79 @@ const {
   createHerdDetector,
 } = require("@dannyphan190/anti-rea");
 
-// DEMO ONLY identity: a real host resolves identity from its server
-// session. The header exists so the scrape scripts can play different
-// users.
-//
-// VERIFIED FIX vs the paper skeleton: the skeleton read the header via
-// req.headers.get("x-demo-user"). Express requests carry headers as a
-// plain object (no .get method) - that line would throw at runtime.
-// The SDK's QuotaRequestLike accepts both shapes, so this reader
-// handles both: Fetch-style .get() when present, plain record otherwise.
-function demoAccountId(req) {
-  const headers = req.headers || {};
-  let value;
-  if (typeof headers.get === "function") {
-    value = headers.get("x-demo-user");
-  } else {
-    value = headers["x-demo-user"];
+// Identity: a SERVER-ISSUED session cookie, never a client-chosen
+// header. History: this starter originally read identity from an
+// `x-demo-user` request header so the scrape scripts could play
+// different users. An external review (2026-11-18) demonstrated the
+// obvious failure: that header plus someone else's token served the
+// victim's records from a different IP, because the client picked
+// the identity the token binds to. The library cannot fix a host
+// that lets the client choose its identity, so the starter now does
+// what a real host must: the server mints the session id, keeps it
+// in an HttpOnly cookie, and identity is whatever the server
+// issued. A real app resolves identity from its own login session
+// exactly the same way; this demo session stands in for that.
+const crypto = require("node:crypto");
+
+const SESSION_COOKIE = "antirea_session";
+// Demo store of server-issued ids. A real host checks its own
+// session store; the point here is that only ids the server minted
+// count as identity.
+const issuedSessions = new Set();
+
+function readCookie(req, name) {
+  const header = req.headers && req.headers.cookie;
+  if (typeof header !== "string") return undefined;
+  for (const part of header.split(";")) {
+    const eq = part.indexOf("=");
+    if (eq < 0) continue;
+    if (part.slice(0, eq).trim() === name) return part.slice(eq + 1).trim();
   }
-  if (Array.isArray(value)) value = value[0];
-  return value ? String(value) : "demo-1";
+  return undefined;
+}
+
+function sessionAccountId(req) {
+  if (req.demoSessionId) return req.demoSessionId;
+  const presented = readCookie(req, SESSION_COOKIE);
+  // A cookie value the client made up is not an identity: only a
+  // server-issued id is honored, anything else is replaced.
+  if (presented && issuedSessions.has(presented)) {
+    req.demoSessionId = presented;
+    return presented;
+  }
+  const id = crypto.randomBytes(18).toString("base64url");
+  issuedSessions.add(id);
+  req.demoSessionId = id;
+  req.demoSessionFresh = true;
+  return id;
+}
+
+function setSessionCookie(res, id) {
+  res.setHeader(
+    "Set-Cookie",
+    `${SESSION_COOKIE}=${id}; HttpOnly; Path=/; SameSite=Lax`
+  );
+}
+
+// Mount before the quota middleware: guarantees every request
+// carries a server-issued session and sets the cookie when a new
+// one was minted.
+function sessionMiddleware(req, res, next) {
+  sessionAccountId(req);
+  if (req.demoSessionFresh) setSessionCookie(res, req.demoSessionId);
+  next();
+}
+
+// Demo "switch user": the old session id is retired server-side and
+// a fresh one is minted. The client asks; the server decides - the
+// client never supplies the new id.
+function resetSession(req, res) {
+  if (req.demoSessionId) issuedSessions.delete(req.demoSessionId);
+  delete req.demoSessionId;
+  delete req.demoSessionFresh;
+  const id = sessionAccountId(req);
+  setSessionCookie(res, id);
+  return id;
 }
 
 // P0: request quota + pagination bounds (tiers trimmed from README s.1).
@@ -42,7 +96,7 @@ const quotaMiddleware = createExpressQuotaMiddleware({
     free: { maxRequests: 120, windowMs: 60_000, maxPageSize: 50, maxPage: 20 },
   },
   resolveIdentity: (req) => ({
-    accountId: demoAccountId(req),
+    accountId: sessionAccountId(req),
     tier: "free",
   }),
   onQuotaExceeded: (event) => {
@@ -101,7 +155,7 @@ const herd = createHerdDetector({
 // One identity string form everywhere ("account:<id>"), so budget,
 // herd and ladder all agree - README sections 7 and 8.
 function identityOf(req) {
-  return `account:${demoAccountId(req)}`;
+  return `account:${sessionAccountId(req)}`;
 }
 
-module.exports = { quotaMiddleware, budget, herd, identityOf };
+module.exports = { quotaMiddleware, budget, herd, identityOf, sessionMiddleware, resetSession };

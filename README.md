@@ -32,9 +32,10 @@ npm start
 Open http://localhost:3000 and press the scrape button, or keep
 everything in the terminal with the scripts below.
 
-Identity for the demo comes from an `x-demo-user` header
-(default `account:demo-1`). Every JSON response carries a `usage`
-field, so the meter is always visible.
+Identity for the demo comes from a server-issued `antirea_session`
+cookie (HttpOnly): the server mints the session id on first visit
+and the client cannot choose who it is. Every JSON response carries
+a `usage` field, so the meter is always visible.
 
 ## The demo: protection off vs on
 
@@ -50,7 +51,7 @@ app.
 DEMO_PROTECTION=off npm start
 npm run scrape
 # page 1-10: +50 records each, usage stays 0/100
-# done: identity demo-1 received 500 distinct records
+# done: session <id>... received 500 distinct records
 ```
 
 500 of 500 records, gone. Nothing metered, nothing logged.
@@ -63,7 +64,7 @@ npm run scrape
 # page 1: +50 records (usage 50/100)
 # page 2: +50 records (usage 100/100)
 # page 3: 429 record_budget_exceeded, used 100/100, remaining 0
-# done: identity demo-1 received 100 distinct records
+# done: session <id>... received 100 distinct records
 ```
 
 ## The herd demo
@@ -127,8 +128,11 @@ section 3), not from the brochure:
   200 of 100 units used. Read `consumeExported` pricing before
   wiring exports in your own app.
 - Identity must come from your server-side session in a real
-  app. The `x-demo-user` header is a teaching shortcut - anyone
-  can set a header.
+  app. This starter mints it as a cookie (see `src/antirea.js`).
+  An earlier version read identity from an `x-demo-user` header;
+  an external review showed that header plus a leaked token
+  serves the victim's records from any IP, so the header is gone:
+  a client must never get to pick the identity a token binds to.
 - Budget state is in memory. It resets when the server restarts,
   and it is not shared between instances. A real deployment
   needs a shared store.

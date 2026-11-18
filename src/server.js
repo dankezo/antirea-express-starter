@@ -2,7 +2,7 @@
 const path = require("node:path");
 const express = require("express");
 const { PRODUCTS, PRODUCT_BY_ID } = require("./data");
-const { quotaMiddleware, budget, herd, identityOf } = require("./antirea");
+const { quotaMiddleware, budget, herd, identityOf, sessionMiddleware, resetSession } = require("./antirea");
 
 const PORT = Number(process.env.PORT || 3000);
 // Teaching switch for the before/after demo. DEMO ONLY - a real app
@@ -12,6 +12,9 @@ const BUDGET_LIMIT = 100; // mirrors maxDistinctPerWindow in antirea.js
 
 const app = express();
 app.use(express.json());
+// Session first: identity is server-issued (see antirea.js), so the
+// session cookie must exist before the quota middleware resolves it.
+app.use(sessionMiddleware);
 app.use("/api/", quotaMiddleware);
 app.use(express.static(path.join(__dirname, "..", "public")));
 
@@ -94,6 +97,14 @@ app.get("/api/export", (req, res) => {
 // --- Supporting ------------------------------------------------------------
 app.get("/api/usage", (req, res) => {
   res.json({ identity: identityOf(req), usage: budget.check(identityOf(req)) });
+});
+
+// Switch-user for the demo page: retires the current server-issued
+// session and mints a fresh one. The client supplies no identity.
+app.post("/api/session/reset", (req, res) => {
+  const id = resetSession(req, res);
+  const identity = `account:${id}`;
+  res.json({ identity, usage: budget.check(identity) });
 });
 
 app.listen(PORT, () => {
