@@ -18,7 +18,7 @@ Run it in your browser first: [Open the live demo on StackBlitz](https://stackbl
 - A herd detector watches for identities that split the dataset
   between them. It only flags - it never blocks. You decide.
 - Plain JavaScript, no build step. Node 20+, Express 4,
-  @dannyphan190/anti-rea 2.8.1 from npm.
+  @dannyphan190/anti-rea 3.3.2 from npm.
 
 ## Quickstart
 
